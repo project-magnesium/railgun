@@ -1,4 +1,4 @@
-<p style="font-size: 3em;" align="center"><b>Railgun</b></p>
+# Railgun
 
 # Features
 

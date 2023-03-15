@@ -6,11 +6,11 @@
 -   Devcontainers
 -   Typescript
 -   TRPC
--   AWS SAM
+-   AWS SAM Boilerplate
     -   API Gateway + Lambda + Lambda Authorizer
     -   Cloudfront + S3 + Lambda@Edge to host landing page and web app within a single S3 bucket
     -   Offline processor using Eventbridge + SQS + Lambda
--   Web, Mobile & Chrome Extension
+-   Web, Mobile & Chrome Extension Boilerplate
 -   EAS to create custom Expo builds
 -   Shared UI and logic packages
 -   CI/CD with Github Actions
@@ -33,7 +33,7 @@ _The steps below assume that you have Google Oauth apps created for Web, Android
 
 2. Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in VS Code.
 
-3. Clone the repository.
+3. Fork the repository.
 
 4. Run `cp -n .devcontainer/devcontainer.env.example .devcontainer/devcontainer.env`. You will need to change the credentials in a later step if you want to setup NoSQL Workbench
 

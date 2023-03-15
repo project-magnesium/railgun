@@ -5,6 +5,7 @@
             "apps/web",
             "apps/extension",
             "apps/mobile",
+            "packages/api",
             "packages/api/sam/lambda",
             "packages/common",
             "packages/tsconfig",

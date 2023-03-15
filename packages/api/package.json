@@ -1,4 +1,5 @@
 {
+    "name": "api",
     "license": "MIT",
     "scripts": {
         "start": "concurrently \"sam local start-api --host 0.0.0.0 -p 3001 --env-vars env.json\" \"cd sam/lambda && yarn build:watch\"",

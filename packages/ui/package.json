@@ -1,0 +1,19 @@
+{
+    "name": "ui",
+    "version": "0.0.0",
+    "main": "./index.tsx",
+    "types": "./index.tsx",
+    "license": "MIT",
+    "scripts": {},
+    "devDependencies": {
+        "@types/react": "^17.0.37",
+        "@types/react-dom": "^17.0.11",
+        "react": "^18.2.0",
+        "typescript": "^4.5.2",
+        "tsconfig": "*"
+    },
+    "dependencies": {
+        "@types/react-native": "^0.71.0",
+        "react-native-web": "^0.18.10"
+    }
+}

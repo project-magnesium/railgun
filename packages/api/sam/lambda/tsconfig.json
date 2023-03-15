@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES2017",
+        "noImplicitAny": true,
+        "preserveConstEnums": true,
+        "outDir": "./built",
+        "sourceMap": true
+    },
+    "watchOptions": {
+        // Use native file system events for files and directories
+        "watchFile": "useFsEvents",
+        "watchDirectory": "useFsEvents",
+        "fallbackPolling": "dynamicPriority",
+        "synchronousWatchDirectory": true,
+        "excludeDirectories": ["**/node_modules", "build"]
+    },
+    "include": ["handler/**/*", "tests/**/*"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
+}

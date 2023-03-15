@@ -1,0 +1,53 @@
+{
+    "name": "lambda",
+    "version": "1.0.0",
+    "description": "hello world sample for NodeJS",
+    "private": true,
+    "main": "app.js",
+    "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+    "author": "SAM CLI",
+    "license": "MIT",
+    "workspaces": {
+        "nohoist": [
+            "**"
+        ]
+    },
+    "scripts": {
+        "unit": "jest",
+        "lint": "eslint '*.ts' --quiet --fix",
+        "build": "webpack",
+        "build:watch": "webpack -w",
+        "test": "jest",
+        "start": "cd ../.. && sam local start-api --host 0.0.0.0 -p 3001 --env-vars env.json",
+        "start:debug": "cd ../.. && sam local start-api --host 0.0.0.0 -p 3001 -d 5858 --env-vars env.json"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.92",
+        "@types/jest": "^29.2.0",
+        "@types/node": "^18.11.4",
+        "@typescript-eslint/eslint-plugin": "^5.10.2",
+        "@typescript-eslint/parser": "^5.10.2",
+        "esbuild": "^0.14.14",
+        "esbuild-jest": "^0.5.0",
+        "eslint": "^8.8.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "jest": "^29.2.1",
+        "prettier": "^2.5.1",
+        "ts-loader": "^9.4.2",
+        "ts-node": "^10.9.1",
+        "tsconfig": "*",
+        "typescript": "^4.8.4",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^5.0.1"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.266.1",
+        "@googleapis/gmail": "^1.2.0",
+        "@trpc/server": "^10.12.0",
+        "aws-crt": "^1.15.9",
+        "google-auth-library": "^8.7.0",
+        "openai": "^3.2.1",
+        "zod": "^3.20.6"
+    }
+}

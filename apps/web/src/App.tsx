@@ -1,0 +1,29 @@
+import { useState } from 'react';
+import Login from './Login';
+import reactLogo from './assets/react.svg';
+import './App.css';
+
+function App() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div className="App">
+            <div>
+                <a href="https://reactjs.org" target="_blank">
+                    <img src={reactLogo} className="logo react" alt="React logo" />
+                </a>
+            </div>
+            <h1>Vite + React</h1>
+            <div className="card">
+                <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
+                <p>
+                    Edit <code>src/App.tsx</code> and save to test HMR
+                </p>
+                <p>Here is some extra text</p>
+            </div>
+            <Login />
+        </div>
+    );
+}
+
+export default App;

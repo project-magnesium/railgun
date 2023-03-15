@@ -1,0 +1,70 @@
+name: Build Extenstion
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                required: true
+                type: choice
+                description: version bump type
+                options:
+                    - none
+                    - patch
+                    - minor
+                    - major
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./apps/extension
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+            - uses: bahmutov/npm-install@HEAD
+            - name: setup git config
+              run: |
+                  git config user.name "GitHub Actions Bot"
+                  git config user.email "noreply@github.com"
+
+            - name: package.json and manifest.json version bump
+              run: |
+                  set -e
+                  VERSION=${{ github.event.inputs.version }}
+                  if [[ "${VERSION}" != "none" ]]; then
+                    # Update package.json version
+                    npm --no-git-tag-version version $VERSION
+                    ../../.github/scripts/update-manifest.sh
+                    git add .
+                    git commit -m "$VERSION"
+                    git push origin develop
+                  fi
+
+            - name: Install Packages
+              run: yarn install --frozen-lockfile
+
+            - name: Generate dotenv file
+              working-directory: './apps'
+              env:
+                  secrets: '{"VITE_API_BASE_URL": "${{ secrets.VITE_API_BASE_URL }}", "VITE_DOMAIN_NAME": "${{ secrets.VITE_DOMAIN_NAME }}", "VITE_GOOGLE_CLIENT_ID": "${{ secrets.VITE_GOOGLE_CLIENT_ID }}"}'
+              run: |
+                  ../.github/scripts/create-env.sh "$secrets"
+
+            - name: Build Extension
+              run: yarn build
+
+            - name: Archive Build
+              uses: vimtor/action-zip@v1.1
+              with:
+                  files: 'public/build/'
+                  dest: extension.zip
+
+            - name: Upload Build
+              uses: actions/upload-artifact@v3
+              with:
+                  name: extension
+                  path: ${{ github.workspace }}/extension.zip

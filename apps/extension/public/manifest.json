@@ -1,0 +1,33 @@
+{
+    "name": "Extension",
+    "description": "",
+    "version": "0.0.1",
+    "manifest_version": 3,
+    "permissions": ["identity", "cookies"],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "/images/get_started16.png",
+            "32": "/images/get_started32.png",
+            "48": "/images/get_started48.png",
+            "128": "/images/get_started128.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "js": ["content/content.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "host_permissions": ["http://localhost:3001/"],
+    "icons": {
+        "16": "/images/get_started16.png",
+        "32": "/images/get_started32.png",
+        "48": "/images/get_started48.png",
+        "128": "/images/get_started128.png"
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "private": true,
+    "workspaces": {
+        "packages": [
+            "apps/web",
+            "apps/extension",
+            "apps/mobile",
+            "packages/api/sam/lambda",
+            "packages/common",
+            "packages/tsconfig",
+            "packages/ui"
+        ],
+        "nohoist": [
+            "packages/api/sam/lambda"
+        ]
+    },
+    "devDependencies": {
+        "concurrently": "^7.6.0",
+        "husky": ">=6",
+        "lint-staged": ">=10",
+        "prettier": "^2.8.4"
+    },
+    "lint-staged": {
+        "*.{ts,tsx,js,css,md}": "prettier --write"
+    },
+    "scripts": {
+        "prepare": "husky install",
+        "start:web": "concurrently \"cd packages/api && yarn start\" \"cd apps/web && yarn start\"",
+        "start:web:debug": "concurrently \"cd packages/api && yarn start:debug\" \"cd apps/web && yarn start\"",
+        "start:extension": "concurrently \"cd packages/api && yarn start\" \"cd apps/extension && yarn start\"",
+        "start:extension:debug": "concurrently \"cd packages/api && yarn start:debug\" \"cd apps/extension && yarn start\"",
+        "dynamodb:sync": "bash packages/api/sam/lambda/localDynamoTableSetup.sh",
+        "dynamodb:sync:clean": "bash packages/api/sam/lambda/localDynamoTableSetup.sh clean"
+    }
+}

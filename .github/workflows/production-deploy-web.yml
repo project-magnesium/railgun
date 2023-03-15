@@ -1,0 +1,29 @@
+name: Production - Deploy Web
+
+on: workflow_dispatch
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./apps/web
+        steps:
+            - uses: actions/checkout@v3
+            - uses: aws-actions/configure-aws-credentials@v1-node16
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-1
+            - name: Install dependencies
+              run: yarn --silent --frozen-lockfile
+            - name: Generate env file
+              working-directory: './apps'
+              env:
+                  secrets: '{"VITE_API_BASE_URL": "${{ secrets.VITE_API_BASE_URL }}", "VITE_DOMAIN_NAME": "${{ secrets.VITE_DOMAIN_NAME }}", "VITE_GOOGLE_CLIENT_ID": "${{ secrets.VITE_GOOGLE_CLIENT_ID }}"}'
+              run: |
+                  ../.github/scripts/create-env.sh "$secrets"
+            - name: Deploy static site to S3 Bucket
+              run: |
+                  yarn build:production
+                  aws s3 sync ./dist/ s3://www.${{ secrets.DOMAIN_NAME }}/app/ --delete
+                  aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/app" "/app/" "/app/index.html"

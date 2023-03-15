@@ -1,0 +1,27 @@
+{
+    "name": "extension",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "start": "concurrently \"vite build --mode dev --config vite.config.popup.ts --watch\" \"vite build --mode dev --config vite.config.background.ts --watch\" \"vite build --mode dev --config vite.config.content.ts --watch\"",
+        "build": "vite build --mode production && vite build --mode production --config vite.config.background.ts && vite build --mode production --config vite.config.content.ts",
+        "dev": "vite",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "common": "*",
+        "ui": "*"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.213",
+        "@types/react": "^18.0.27",
+        "@types/react-dom": "^18.0.10",
+        "@vitejs/plugin-react": "^3.1.0",
+        "tsconfig": "*",
+        "typescript": "^4.9.3",
+        "vite": "^4.1.0"
+    }
+}

@@ -1,0 +1,399 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    sam-api
+
+    Sample SAM Template for sam-api
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+    Function:
+        Timeout: 15
+        Environment:
+            Variables:
+                EnvironmentParameter: !Ref EnvironmentParameter
+                DynamoDBRegionParameter: !Ref DynamoDBRegionParameter
+                DynamoDBEndpointParameter: !Ref DynamoDBEndpointParameter
+                AWSAccessKeyIDParameter: !Ref AWSAccessKeyIDParameter
+                AWSSecretKeyIDParameter: !Ref AWSSecretKeyIDParameter
+                DomainNameParameter: !Ref DomainNameParameter
+                FullDomainNameParameter: !Ref FullDomainNameParameter
+                FullApiDomainNameParameter: !Ref FullApiDomainNameParameter
+                GoogleOauthClientIDParameter: !Ref GoogleOauthClientIDParameter
+                GoogleOauthIOSClientIDParameter: !Ref GoogleOauthIOSClientIDParameter
+                GoogleOauthAndroidClientIDParameter: !Ref GoogleOauthAndroidClientIDParameter
+                GoogleOauthClientSecretParameter: !Ref GoogleOauthClientSecretParameter
+                OpenAISecretKeyParameter: !Ref OpenAISecretKeyParameter
+    Api:
+        Cors:
+            AllowOrigin: !Sub "'${FullDomainNameParameter}'"
+            AllowHeaders: "'Content-Type,Authorization'"
+            AllowMethods: "'GET,POST,OPTIONS'"
+            AllowCredentials: "'true'"
+
+Parameters:
+    EnvironmentParameter:
+        Type: String
+        Description: Environment
+        Default: Dev
+    DynamoDBRegionParameter:
+        Type: String
+        Description: Dynamo DB Region
+    DynamoDBEndpointParameter:
+        Type: String
+        Description: Dynamo DB Endpoint
+        Default: undefined
+    AWSAccessKeyIDParameter:
+        Type: String
+        Description: Access Key ID
+        Default: undefined
+    AWSSecretKeyIDParameter:
+        Type: String
+        Description: Secret Key ID
+        Default: undefined
+    GoogleOauthClientIDParameter:
+        Type: String
+        Description: Google Oauth Client ID
+    GoogleOauthIOSClientIDParameter:
+        Type: String
+        Description: Google IOS Oauth Client ID
+    GoogleOauthAndroidClientIDParameter:
+        Type: String
+        Description: Google Android Oauth Client ID
+    GoogleOauthClientSecretParameter:
+        Type: String
+        Description: Google Oauth Client Secret
+    DomainNameParameter:
+        Type: String
+        Description: The domain name of the site
+    FullDomainNameParameter:
+        Type: String
+        Description: The domain name of the site with http or https
+        Default: http://localhost:3000
+    ApiDomainNameParameter:
+        Type: String
+        Description: The subdomain of the API
+        Default: 'api.'
+    FullApiDomainNameParameter:
+        Type: String
+        Description: The domain name of the api with http or https
+    OpenAISecretKeyParameter:
+        Type: String
+        Description: OpenAI Secret Key
+
+Resources:
+    SSLCertificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+            DomainName: !Join ['', ['*.', !Ref DomainNameParameter]]
+            SubjectAlternativeNames:
+                - !Ref DomainNameParameter
+                - !Join ['', ['*.', !Ref DomainNameParameter]]
+            ValidationMethod: DNS
+
+    CloudFrontOriginAccessIdentity:
+        Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+        Properties:
+            CloudFrontOriginAccessIdentityConfig:
+                Comment: 'Serverless website OA'
+
+    App:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Join ['', [www., !Ref DomainNameParameter]]
+
+    BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            PolicyDocument:
+                Id: MyPolicy
+                Version: 2012-10-17
+                Statement:
+                    Effect: Allow
+                    Action: 's3:GetObject'
+                    Resource:
+                        - !Sub 'arn:aws:s3:::${App}/*'
+                    Principal:
+                        AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}'
+            Bucket:
+                Ref: App
+
+    CloudFrontRouter:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/cloudFrontRouter
+            Role: !GetAtt LambdaEdgeFunctionRole.Arn
+            Handler: cloudFrontRouter.handler
+            Runtime: nodejs18.x
+            AutoPublishAlias: live
+            Environment: !Ref 'AWS::NoValue'
+
+    LambdaEdgeFunctionRole:
+        Type: 'AWS::IAM::Role'
+        Properties:
+            Path: '/'
+            ManagedPolicyArns:
+                - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Sid: 'AllowLambdaServiceToAssumeRole'
+                      Effect: 'Allow'
+                      Action:
+                          - 'sts:AssumeRole'
+                      Principal:
+                          Service:
+                              - 'lambda.amazonaws.com'
+                              - 'edgelambda.amazonaws.com'
+
+    CloudFrontDistribution:
+        Type: 'AWS::CloudFront::Distribution'
+        Properties:
+            DistributionConfig:
+                ViewerCertificate:
+                    AcmCertificateArn: !Ref SSLCertificate
+                    SslSupportMethod: sni-only
+                Aliases: !Split [',', !Join ['', [www., !Ref DomainNameParameter]]]
+                DefaultCacheBehavior:
+                    ViewerProtocolPolicy: redirect-to-https
+                    TargetOriginId: !Join ['', [www., !Ref DomainNameParameter]]
+                    ForwardedValues:
+                        QueryString: false
+                    LambdaFunctionAssociations:
+                        - EventType: origin-request
+                          LambdaFunctionARN: !Ref CloudFrontRouter.Version
+                    AllowedMethods:
+                        - GET
+                        - HEAD
+                        - OPTIONS
+                Origins:
+                    - DomainName: !GetAtt App.DomainName
+                      Id: !Join ['', [www., !Ref DomainNameParameter]]
+                      S3OriginConfig:
+                          OriginAccessIdentity:
+                              Fn::Sub: 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+                Enabled: 'true'
+                DefaultRootObject: index.html
+                HttpVersion: http2
+
+    EmailProcessorDeadLetterQueue:
+        Type: AWS::SQS::Queue
+
+    EmailProcessorQueue:
+        Type: AWS::SQS::Queue
+        Properties:
+            RedrivePolicy:
+                deadLetterTargetArn: !GetAtt EmailProcessorDeadLetterQueue.Arn
+                maxReceiveCount: 3
+
+    EmailProcessorQueueEventBridgePolicy:
+        Type: AWS::SQS::QueuePolicy
+        Properties:
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    - Effect: Allow
+                      Principal: { Service: events.amazonaws.com }
+                      Action: SQS:SendMessage
+                      Resource: !GetAtt EmailProcessorQueue.Arn
+            Queues:
+                - !Ref EmailProcessorQueue
+
+    EmailProcessorEventBridgeRule:
+        Type: AWS::Events::Rule
+        Properties:
+            ScheduleExpression: 'rate(1 hour)'
+            State: DISABLED
+            Targets:
+                - Arn: !GetAtt EmailProcessorQueue.Arn
+                  Id: EmailProcessorQueueTarget
+            EventPattern:
+                source: ['offline.events']
+                detailType: ['ProcessEmails']
+
+    ServerlessApi:
+        Type: AWS::Serverless::Api
+        Properties:
+            StageName: Prod
+            Domain:
+                DomainName: !Join ['', [!Ref ApiDomainNameParameter, !Ref DomainNameParameter]]
+                CertificateArn: !Ref SSLCertificate
+            Auth:
+                AddDefaultAuthorizerToCorsPreflight: false
+                DefaultAuthorizer: MyLambdaTokenAuthorizer
+                Authorizers:
+                    MyLambdaTokenAuthorizer:
+                        FunctionArn: !GetAtt AuthFunction.Arn
+                        FunctionPayloadType: REQUEST
+                        Identity:
+                            Headers: ['Cookie']
+                            ReauthorizeEvery: 0
+            Cors:
+                AllowOrigin: !Sub "'${FullDomainNameParameter}'"
+                AllowHeaders: "'Content-Type,Authorization'"
+                AllowMethods: "'GET,POST,OPTIONS'"
+                AllowCredentials: "'true'"
+            GatewayResponses:
+                DEFAULT_4XX:
+                    ResponseParameters:
+                        Headers:
+                            Access-Control-Allow-Origin: !Sub "'${FullDomainNameParameter}'"
+                DEFAULT_5XX:
+                    ResponseParameters:
+                        Headers:
+                            Access-Control-Allow-Origin: !Sub "'${FullDomainNameParameter}'"
+
+    AuthFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/authorizer
+            Handler: authorizer.handler
+            Runtime: nodejs18.x
+
+    LoginFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/login
+            Handler: login.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Post:
+                    Type: Api
+                    Properties:
+                        Auth:
+                            Authorizer: NONE
+                        RestApiId: !Ref ServerlessApi
+                        Path: /login
+                        Method: POST
+                Options:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /login
+                        Method: OPTIONS
+
+    GoogleAuthorizerFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/googleAuthorizer
+            Handler: googleAuthorizer.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Get:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /googleAuthorizer
+                        Method: GET
+                Options:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /googleAuthorizer
+                        Method: OPTIONS
+
+    Oauth2CallbackFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/oauth2Callback
+            Handler: oauth2Callback.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Get:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /oauth2Callback
+                        Method: GET
+            Policies:
+                - AmazonDynamoDBFullAccess
+
+    TestFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/test
+            Handler: test.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Get:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /test
+                        Method: GET
+                Options:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /test
+                        Method: OPTIONS
+            Policies:
+                - AmazonDynamoDBFullAccess
+
+    EmailProcessorFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/emailProcessor
+            Handler: emailProcessor.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                SQSTrigger:
+                    Type: SQS
+                    Properties:
+                        BatchSize: 1
+                        Queue: !GetAtt EmailProcessorQueue.Arn
+            Policies:
+                - AmazonDynamoDBFullAccess
+
+    DynamoDBTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: !Sub DynamoDBTable${EnvironmentParameter}
+            AttributeDefinitions:
+                - AttributeName: id
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: id
+                  KeyType: HASH
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+            StreamSpecification:
+                StreamViewType: NEW_IMAGE
+
+    GoogleUserTokensTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: !Sub GoogleUserTokens${EnvironmentParameter}
+            AttributeDefinitions:
+                - AttributeName: userID
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: userID
+                  KeyType: HASH
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+            StreamSpecification:
+                StreamViewType: NEW_IMAGE
+
+Outputs:
+    # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+    # Find out more about other implicit resources you can reference within SAM
+    # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+    ServerlessApi:
+        Description: 'API Gateway endpoint URL for Prod stage for Hello World function'
+        Value: !Sub 'https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/'
+    TestFunction:
+        Description: 'Hello World Lambda Function ARN'
+        Value: !GetAtt TestFunction.Arn

@@ -1,0 +1,9 @@
+{
+    "TableName": "GoogleUserTokensDev",
+    "KeySchema": [{ "AttributeName": "userID", "KeyType": "HASH" }],
+    "AttributeDefinitions": [{ "AttributeName": "userID", "AttributeType": "S" }],
+    "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+    }
+}

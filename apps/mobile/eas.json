@@ -1,0 +1,41 @@
+{
+    "cli": {
+        "version": ">= 3.7.2"
+    },
+    "build": {
+        "dev": {
+            "developmentClient": true,
+            "distribution": "internal",
+            "ios": {
+                "simulator": true,
+                "resourceClass": "m-medium"
+            },
+            "env": {
+                "SCHEME": "exponame",
+                "IDENTIFIER": "com.exponame"
+            }
+        },
+        "staging": {
+            "distribution": "internal",
+            "ios": {
+                "resourceClass": "m-medium"
+            },
+            "env": {
+                "SCHEME": "exponame",
+                "IDENTIFIER": "com.exponame"
+            }
+        },
+        "production": {
+            "ios": {
+                "resourceClass": "m-medium"
+            },
+            "env": {
+                "SCHEME": "exponame",
+                "IDENTIFIER": "com.exponame"
+            }
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}

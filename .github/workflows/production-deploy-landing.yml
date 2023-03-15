@@ -1,0 +1,20 @@
+name: Production - Deploy Landing
+
+on: workflow_dispatch
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./apps/landing
+        steps:
+            - uses: actions/checkout@v3
+            - uses: aws-actions/configure-aws-credentials@v1-node16
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-1
+            - name: Deploy static site to S3 Bucket
+              run: |
+                  aws s3 sync ./ s3://www.${{ secrets.DOMAIN_NAME }}/ --exclude "app/*" --delete
+                  aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/index.html"

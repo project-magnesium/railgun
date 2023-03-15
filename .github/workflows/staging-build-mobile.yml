@@ -1,0 +1,47 @@
+name: Staging - Build Mobile
+
+on:
+    workflow_dispatch:
+        inputs:
+            platform:
+                required: true
+                type: choice
+                description: Platform
+                options:
+                    - all
+                    - ios
+                    - android
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./apps/mobile
+        steps:
+            - name: 🏗 Setup repo
+              uses: actions/checkout@v3
+
+            - name: 🏗 Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18.x
+                  cache: yarn
+
+            - name: 🏗 Setup EAS
+              uses: expo/expo-github-action@v8
+              with:
+                  eas-version: latest
+                  token: ${{ secrets.EXPO_TOKEN }}
+
+            - name: 📦 Install dependencies
+              run: yarn install
+
+            - name: Generate env file
+              working-directory: './apps'
+              env:
+                  secrets: '{"VITE_API_BASE_URL": "${{ secrets.VITE_STAGING_API_BASE_URL }}", "VITE_DOMAIN_NAME": "${{ secrets.VITE_STAGING_DOMAIN_NAME }}", "VITE_GOOGLE_IOS_CLIENT_ID": "${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}", "VITE_GOOGLE_ANDROID_CLIENT_ID": "${{ secrets.VITE_GOOGLE_ANDROID_CLIENT_ID }}"}'
+              run: |
+                  ../.github/scripts/create-env.sh "$secrets"
+
+            - name: 🚀 Build app
+              run: eas build --non-interactive --profile staging --platform ${{ github.event.inputs.platform }}

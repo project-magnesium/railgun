@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "inlineSourceMap": true,
+        "outDir": "/workspaces/reponame/packages/api/sam/lambda",
+        "rootDir": ".",
+        "sourceRoot": "/workspaces/reponame/packages/api/sam/lambda",
+        "typeRoots": ["node_modules/@types"],
+        "types": ["node"]
+    }
+}

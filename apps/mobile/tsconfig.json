@@ -1,0 +1,13 @@
+{
+    "extends": "tsconfig/base.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "jsx": "react-native",
+        "lib": ["DOM", "ESNext"],
+        "noEmit": true,
+        "resolveJsonModule": true,
+        "target": "ESNext"
+    },
+    "typeRoots": ["./src/types"],
+    "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js"]
+}

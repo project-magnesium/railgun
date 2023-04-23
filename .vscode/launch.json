@@ -1,35 +1,6 @@
 {
     "configurations": [
         {
-            "type": "aws-sam",
-            "request": "direct-invoke",
-            "name": "lambda:app.handler (nodejs18.x)",
-            "invokeTarget": {
-                "target": "code",
-                "projectRoot": "${workspaceFolder}/packages/api/sam/lambda",
-                "lambdaHandler": "built/app.handler"
-            },
-            "lambda": {
-                "runtime": "nodejs18.x",
-                "payload": {
-                    "json": {
-                        "httpMethod": "GET",
-                        "requestContext": {
-                            "authorizer": {
-                                "userID": 1234
-                            }
-                        }
-                    }
-                },
-                "environmentVariables": {
-                    "DynamoDBRegionParameter": "localhost",
-                    "DynamoDBEndpointParameter": "http://docker.for.mac.localhost:8000",
-                    "AWSAccessKeyIDParameter": "123",
-                    "AWSSecretKeyIDParameter": "123"
-                }
-            }
-        },
-        {
             "type": "node",
             "request": "attach",
             "name": "Attach to SAM CLI",

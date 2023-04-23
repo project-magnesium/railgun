@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "start": "concurrently \"vite build --mode dev --config vite.config.popup.ts --watch\" \"vite build --mode dev --config vite.config.background.ts --watch\" \"vite build --mode dev --config vite.config.content.ts --watch\"",
-        "build": "vite build --mode production && vite build --mode production --config vite.config.background.ts && vite build --mode production --config vite.config.content.ts",
+        "build": "vite build --mode production --config vite.config.popup.ts && vite build --mode production --config vite.config.background.ts && vite build --mode production --config vite.config.content.ts",
         "dev": "vite",
         "preview": "vite preview"
     },

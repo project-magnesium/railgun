@@ -5,12 +5,14 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => ({
     plugins: [react()],
     resolve: {
+        extensions: ['.web.tsx', '.web.jsx', '.web.js', '.tsx', '.ts', '.js'],
         alias: {
             'react-native': 'react-native-web',
         },
     },
     build: {
         minify: mode !== 'dev',
+        sourcemap: mode === 'dev',
         emptyOutDir: false,
         outDir: 'public',
         rollupOptions: {

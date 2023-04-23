@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 export default defineConfig(({ mode }) => ({
     build: {
         minify: mode !== 'dev',
+        sourcemap: mode === 'dev',
         emptyOutDir: false,
         rollupOptions: {
             input: {
@@ -16,4 +17,5 @@ export default defineConfig(({ mode }) => ({
             },
         },
     },
+    envDir: '../',
 }));

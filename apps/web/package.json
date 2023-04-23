@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "start": "vite --mode dev --host localhost --port 3000 --open",
+        "start": "vite --mode dev --host localhost --port 3000 --open app",
         "build": "tsc && vite build",
         "build:production": "tsc && vite build --mode production",
         "preview": "vite preview"
@@ -13,6 +13,7 @@
         "common": "*",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-router-dom": "^6.10.0",
         "ui": "*"
     },
     "devDependencies": {

@@ -8,7 +8,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 
-import { trpcConfig, UserInterface } from 'common';
+import { trpcConfig } from 'common';
 import { Button, Provider, Text, theme } from 'ui';
 import { VITE_GOOGLE_IOS_CLIENT_ID, VITE_GOOGLE_ANDROID_CLIENT_ID, VITE_DOMAIN_NAME, VITE_API_BASE_URL } from '@env';
 
@@ -49,9 +49,6 @@ const Login = () => {
 
     const handleLoginSuccess = async (idToken: string, refreshToken: string | undefined) => {
         await handleSetCredentials(idToken, refreshToken);
-
-        const userInterface = new UserInterface();
-        await userInterface.getOrCreateProfile();
     };
 
     useEffect(() => {

@@ -2,7 +2,7 @@ import { trpcConfig } from '../TRPCConfig';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AnyRouter } from '@trpc/server/dist/core/router';
 
-class BaseObejct<TRouter extends AnyRouter> {
+export default class BaseInterface<TRouter extends AnyRouter> {
     trpc;
 
     constructor() {
@@ -35,5 +35,3 @@ class BaseObejct<TRouter extends AnyRouter> {
         });
     }
 }
-
-export default BaseObejct;

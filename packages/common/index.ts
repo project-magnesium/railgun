@@ -1,2 +1,2 @@
-export * from './objects/User';
 export * from './TRPCConfig';
+export * from './interfaces/UserInterface';

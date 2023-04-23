@@ -1,4 +1,4 @@
-name: Build Extenstion
+name: Production - Build Extenstion
 
 on:
     workflow_dispatch:
@@ -17,9 +17,6 @@ jobs:
     build:
         name: Build
         runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: ./apps/extension
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
@@ -32,6 +29,7 @@ jobs:
                   git config user.email "noreply@github.com"
 
             - name: package.json and manifest.json version bump
+              working-directory: './apps/extension'
               run: |
                   set -e
                   VERSION=${{ github.event.inputs.version }}
@@ -45,6 +43,7 @@ jobs:
                   fi
 
             - name: Install Packages
+              working-directory: './apps/extension'
               run: yarn install --frozen-lockfile
 
             - name: Generate dotenv file
@@ -55,12 +54,13 @@ jobs:
                   ../.github/scripts/create-env.sh "$secrets"
 
             - name: Build Extension
+              working-directory: './apps/extension'
               run: yarn build
 
             - name: Archive Build
               uses: vimtor/action-zip@v1.1
               with:
-                  files: 'public/build/'
+                  files: 'apps/extension/public/build/'
                   dest: extension.zip
 
             - name: Upload Build

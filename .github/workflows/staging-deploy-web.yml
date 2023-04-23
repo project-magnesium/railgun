@@ -26,4 +26,4 @@ jobs:
               run: |
                   yarn build:production
                   aws s3 sync ./dist/ s3://www.staging.${{ secrets.DOMAIN_NAME }}/app/ --delete
-                  aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_STAGING_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/app" "/app/" "/app/index.html"
+                  aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_STAGING_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/app*"

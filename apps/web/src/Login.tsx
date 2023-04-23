@@ -1,18 +1,17 @@
 import React, { useEffect } from 'react';
-import User from 'common/objects/User';
-import { Button } from 'ui';
-import { Text } from 'react-native';
+import { UserInterface } from 'common';
+import { H1 } from 'ui';
 
 const Login: React.FC = () => {
-    const user = new User();
-
-    const handleSetDate = async () => {
-        await user.test();
-    };
+    const userInterface = new UserInterface();
 
     const handleAuthorizeGoogle = async () => {
-        const response = await user.authorizeGmail();
+        const response = await userInterface.authorizeGmail();
         window.open(response.data.authorizationUrl);
+    };
+
+    const handleGmailUnsubscribe = async () => {
+        await userInterface.gmailUnsubscribe();
     };
 
     useEffect(() => {
@@ -24,12 +23,13 @@ const Login: React.FC = () => {
     }, []);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 20 }}>
+            <H1>Welcome to Railgun!</H1>
             <div
                 id="g_id_onload"
                 data-client_id={import.meta.env.VITE_GOOGLE_CLIENT_ID}
                 data-login_uri={`${import.meta.env.VITE_API_BASE_URL}/login`}
-                data-auto_prompt="false"
+                data-auto_prompt="true"
             ></div>
             <div
                 className="g_id_signin"
@@ -40,14 +40,8 @@ const Login: React.FC = () => {
                 data-shape="rectangular"
                 data-logo_alignment="left"
             ></div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <Button onPress={handleSetDate}>
-                    <Text>Set Date</Text>
-                </Button>
-                <Button onPress={handleAuthorizeGoogle}>
-                    <Text>Authorize Google API</Text>
-                </Button>
-            </div>
+            <button onClick={handleAuthorizeGoogle}>Authorize Gmail</button>
+            <button onClick={handleGmailUnsubscribe}>Unsubscribe Gmail</button>
         </div>
     );
 };

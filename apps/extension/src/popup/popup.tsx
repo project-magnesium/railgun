@@ -11,14 +11,12 @@ trpcConfig.set({
             if (response.message === 'ok') {
                 return true;
             }
-        } finally {
-            return false;
+        } catch (error) {
+            console.error(error);
         }
+
+        return false;
     },
 });
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <React.StrictMode>
-        <PopupApp />
-    </React.StrictMode>
-);
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<PopupApp />);

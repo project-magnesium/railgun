@@ -24,6 +24,10 @@ Globals:
                 GoogleOauthAndroidClientIDParameter: !Ref GoogleOauthAndroidClientIDParameter
                 GoogleOauthClientSecretParameter: !Ref GoogleOauthClientSecretParameter
                 OpenAISecretKeyParameter: !Ref OpenAISecretKeyParameter
+                GmailPubSubTopicParameter: !Ref GmailPubSubTopicParameter
+                GmailPubSubEmailParameter: !Ref GmailPubSubEmailParameter
+                EncryptionKeyParameter: !Ref EncryptionKeyParameter
+                EncryptionInitializationVectorParameter: !Ref EncryptionInitializationVectorParameter
     Api:
         Cors:
             AllowOrigin: !Sub "'${FullDomainNameParameter}'"
@@ -80,6 +84,18 @@ Parameters:
     OpenAISecretKeyParameter:
         Type: String
         Description: OpenAI Secret Key
+    GmailPubSubTopicParameter:
+        Type: String
+        Description: Gmail Pub Sub Topic to get subscriptions from
+    GmailPubSubEmailParameter:
+        Type: String
+        Description: Gmail Pub Sub Service Account Email
+    EncryptionKeyParameter:
+        Type: String
+        Description: base64 key string to be used for encryption/decryption
+    EncryptionInitializationVectorParameter:
+        Type: String
+        Description: base64 initialization vector string to be used for encryption/decryption
 
 Resources:
     SSLCertificate:
@@ -176,17 +192,17 @@ Resources:
                 DefaultRootObject: index.html
                 HttpVersion: http2
 
-    EmailProcessorDeadLetterQueue:
+    GmailWatchRefreshDeadLetterQueue:
         Type: AWS::SQS::Queue
 
-    EmailProcessorQueue:
+    GmailWatchRefreshQueue:
         Type: AWS::SQS::Queue
         Properties:
             RedrivePolicy:
-                deadLetterTargetArn: !GetAtt EmailProcessorDeadLetterQueue.Arn
+                deadLetterTargetArn: !GetAtt GmailWatchRefreshDeadLetterQueue.Arn
                 maxReceiveCount: 3
 
-    EmailProcessorQueueEventBridgePolicy:
+    GmailWatchRefreshQueueEventBridgePolicy:
         Type: AWS::SQS::QueuePolicy
         Properties:
             PolicyDocument:
@@ -195,18 +211,18 @@ Resources:
                     - Effect: Allow
                       Principal: { Service: events.amazonaws.com }
                       Action: SQS:SendMessage
-                      Resource: !GetAtt EmailProcessorQueue.Arn
+                      Resource: !GetAtt GmailWatchRefreshQueue.Arn
             Queues:
-                - !Ref EmailProcessorQueue
+                - !Ref GmailWatchRefreshQueue
 
-    EmailProcessorEventBridgeRule:
+    GmailWatchRefreshEventBridgeRule:
         Type: AWS::Events::Rule
         Properties:
-            ScheduleExpression: 'rate(1 hour)'
+            ScheduleExpression: 'rate(1 day)'
             State: DISABLED
             Targets:
-                - Arn: !GetAtt EmailProcessorQueue.Arn
-                  Id: EmailProcessorQueueTarget
+                - Arn: !GetAtt GmailWatchRefreshQueue.Arn
+                  Id: GmailWatchRefreshQueueTarget
             EventPattern:
                 source: ['offline.events']
                 detailType: ['ProcessEmails']
@@ -394,6 +410,3 @@ Outputs:
     ServerlessApi:
         Description: 'API Gateway endpoint URL for Prod stage for Hello World function'
         Value: !Sub 'https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/'
-    TestFunction:
-        Description: 'Hello World Lambda Function ARN'
-        Value: !GetAtt TestFunction.Arn

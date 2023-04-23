@@ -1,3 +1,4 @@
 packages/* text eol=lf
 apps/* text eol=lf
 start.sh text eol=lf
+packages/api/sam/lambda/localDynamoTableSetup.sh text eol=lf

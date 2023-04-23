@@ -244,6 +244,11 @@ Resources:
                         Identity:
                             Headers: ['Cookie']
                             ReauthorizeEvery: 0
+                    GmailPubSubAuthorizer:
+                        FunctionArn: !GetAtt GmailPubSubAuthorizerFunction.Arn
+                        FunctionPayloadType: REQUEST
+                        Identity:
+                            ReauthorizeEvery: 0
             Cors:
                 AllowOrigin: !Sub "'${FullDomainNameParameter}'"
                 AllowHeaders: "'Content-Type,Authorization'"
@@ -254,16 +259,25 @@ Resources:
                     ResponseParameters:
                         Headers:
                             Access-Control-Allow-Origin: !Sub "'${FullDomainNameParameter}'"
+                            Access-Control-Allow-Credentials: "'true'"
                 DEFAULT_5XX:
                     ResponseParameters:
                         Headers:
                             Access-Control-Allow-Origin: !Sub "'${FullDomainNameParameter}'"
+                            Access-Control-Allow-Credentials: "'true'"
 
     AuthFunction:
         Type: AWS::Serverless::Function
         Properties:
             CodeUri: sam/lambda/built/authorizer
             Handler: authorizer.handler
+            Runtime: nodejs18.x
+
+    GmailPubSubAuthorizerFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/gmailPubSubAuthorizer
+            Handler: gmailPubSubAuthorizer.handler
             Runtime: nodejs18.x
 
     LoginFunction:
@@ -330,35 +344,11 @@ Resources:
             Policies:
                 - AmazonDynamoDBFullAccess
 
-    TestFunction:
+    GmailWatchRefreshFunction:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: sam/lambda/built/test
-            Handler: test.handler
-            Runtime: nodejs18.x
-            Architectures:
-                - x86_64
-            Events:
-                Get:
-                    Type: Api
-                    Properties:
-                        RestApiId: !Ref ServerlessApi
-                        Path: /test
-                        Method: GET
-                Options:
-                    Type: Api
-                    Properties:
-                        RestApiId: !Ref ServerlessApi
-                        Path: /test
-                        Method: OPTIONS
-            Policies:
-                - AmazonDynamoDBFullAccess
-
-    EmailProcessorFunction:
-        Type: AWS::Serverless::Function
-        Properties:
-            CodeUri: sam/lambda/built/emailProcessor
-            Handler: emailProcessor.handler
+            CodeUri: sam/lambda/built/gmailWatchRefresh
+            Handler: gmailWatchRefresh.handler
             Runtime: nodejs18.x
             Architectures:
                 - x86_64
@@ -367,19 +357,69 @@ Resources:
                     Type: SQS
                     Properties:
                         BatchSize: 1
-                        Queue: !GetAtt EmailProcessorQueue.Arn
+                        Queue: !GetAtt GmailWatchRefreshQueue.Arn
             Policies:
                 - AmazonDynamoDBFullAccess
 
-    DynamoDBTable:
+    GmailPubSubCallbackFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/gmailPubSubCallback
+            Handler: gmailPubSubCallback.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Post:
+                    Type: Api
+                    Properties:
+                        Auth:
+                            Authorizer: GmailPubSubAuthorizer
+                        RestApiId: !Ref ServerlessApi
+                        Path: /gmailPubSubCallback
+                        Method: POST
+                Options:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /gmailPubSubCallback
+                        Method: OPTIONS
+            Policies:
+                - AmazonDynamoDBFullAccess
+
+    GmailUnsubscribeFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: sam/lambda/built/gmailUnsubscribe
+            Handler: gmailUnsubscribe.handler
+            Runtime: nodejs18.x
+            Architectures:
+                - x86_64
+            Events:
+                Post:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /gmailUnsubscribe
+                        Method: POST
+                Options:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ServerlessApi
+                        Path: /gmailUnsubscribe
+                        Method: OPTIONS
+            Policies:
+                - AmazonDynamoDBFullAccess
+
+    GoogleUserTokensTable:
         Type: AWS::DynamoDB::Table
         Properties:
-            TableName: !Sub DynamoDBTable${EnvironmentParameter}
+            TableName: !Sub GoogleUserTokens${EnvironmentParameter}
             AttributeDefinitions:
-                - AttributeName: id
+                - AttributeName: email
                   AttributeType: S
             KeySchema:
-                - AttributeName: id
+                - AttributeName: email
                   KeyType: HASH
             ProvisionedThroughput:
                 ReadCapacityUnits: 5
@@ -387,16 +427,36 @@ Resources:
             StreamSpecification:
                 StreamViewType: NEW_IMAGE
 
-    GoogleUserTokensTable:
+    GmailHistoryIdTable:
         Type: AWS::DynamoDB::Table
         Properties:
-            TableName: !Sub GoogleUserTokens${EnvironmentParameter}
+            TableName: !Sub GmailHistoryId${EnvironmentParameter}
             AttributeDefinitions:
-                - AttributeName: userID
+                - AttributeName: userId
                   AttributeType: S
             KeySchema:
-                - AttributeName: userID
+                - AttributeName: userId
                   KeyType: HASH
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+            StreamSpecification:
+                StreamViewType: NEW_IMAGE
+
+    EmailTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: !Sub Email${EnvironmentParameter}
+            AttributeDefinitions:
+                - AttributeName: userId
+                  AttributeType: S
+                - AttributeName: createdDate
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: userId
+                  KeyType: HASH
+                - AttributeName: createdDate
+                  KeyType: RANGE
             ProvisionedThroughput:
                 ReadCapacityUnits: 5
                 WriteCapacityUnits: 5

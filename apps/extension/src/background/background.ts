@@ -1,3 +1,24 @@
+import { trpcConfig } from 'common';
+
+trpcConfig.set({
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    handleLogin: async () => {
+        try {
+            await getAccessToken(false);
+            return true;
+        } catch (e) {
+            console.log(e);
+        }
+
+        const activeTabQuery = await chrome.tabs.query({ active: true, currentWindow: true });
+        const focusedTab = activeTabQuery.length === 1 ? activeTabQuery[0] : undefined;
+        if (focusedTab && focusedTab.id) {
+            chrome.tabs.sendMessage(focusedTab.id, { type: 'CONTENT_NAVIGATE_TO_LOGIN' });
+        }
+        return false;
+    },
+});
+
 const REDIRECT_URL = chrome.identity.getRedirectURL();
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = ['openid', 'email', 'profile'];
@@ -24,7 +45,7 @@ const validate = async (redirectURL: string | undefined) => {
 
     await chrome.cookies.set({
         httpOnly: true,
-        domain: `.${import.meta.env.VITE_DOMAIN_NAME}`,
+        domain: import.meta.env.MODE === 'dev' ? 'localhost' : `.${import.meta.env.VITE_DOMAIN_NAME}`,
         secure: true,
         name: 'cred',
         value: idToken,

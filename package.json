@@ -30,6 +30,8 @@
         "start:web:debug": "concurrently \"cd packages/api && yarn start:debug\" \"cd apps/web && yarn start\"",
         "start:extension": "concurrently \"cd packages/api && yarn start\" \"cd apps/extension && yarn start\"",
         "start:extension:debug": "concurrently \"cd packages/api && yarn start:debug\" \"cd apps/extension && yarn start\"",
+        "start:web:extension": "concurrently \"cd packages/api && yarn start\" \"cd apps/web && yarn start\" \"cd apps/extension && yarn start\"",
+        "start:web:extension:debug": "concurrently \"cd packages/api && yarn start:debug\" \"cd apps/web && yarn start\" \"cd apps/extension && yarn start\"",
         "dynamodb:sync": "bash packages/api/sam/lambda/localDynamoTableSetup.sh",
         "dynamodb:sync:clean": "bash packages/api/sam/lambda/localDynamoTableSetup.sh clean"
     }

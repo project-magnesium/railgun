@@ -91,11 +91,15 @@ IMPORTANT NOTE: When developing the React Native app on your own mobile device, 
 
 ### Entire Stack
 
-`yarn start:web` to run the web app and api in watch mode or `yarn start:web:debug` to run the web app and api in debug mode
+`yarn start:web:extension` to run the web app, extension and api in watch mode or `yarn start:web:debug` to run the web app, extension and api in debug mode
 
 or
 
-`yarn start:extension` to build the extension and api in watch mode or `yarn start:extension:debug` to build the extension and api in debug mode
+`yarn start:web` & `yarn start:web:debug` to run the web app and api in watch mode
+
+or
+
+`yarn start:extension` & `yarn start:extension:debug` to run the extension and api in watch mode
 
 _Note: Running the entire stack with mobile is not supported since you need your host machine to run the simulators_
 

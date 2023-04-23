@@ -20,7 +20,14 @@
     "content_scripts": [
         {
             "js": ["content/content.js"],
+            "css": ["content/content.css"],
             "matches": ["<all_urls>"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "matches": ["<all_urls>"],
+            "resources": ["content/content.css"]
         }
     ],
     "host_permissions": ["http://localhost:3001/"],

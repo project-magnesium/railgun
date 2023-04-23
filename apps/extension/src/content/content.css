@@ -1,0 +1,7 @@
+#railgun-app-root.railgun-app-root
+    *:not(svg):not(svg *) {
+    all: initial;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}

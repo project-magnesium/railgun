@@ -27,6 +27,10 @@ const LoginRedirect = () => {
     return <div>Redirecting...</div>;
 };
 
+const Home = () => {
+    return <div>Home</div>;
+};
+
 const router = createBrowserRouter(
     [
         {

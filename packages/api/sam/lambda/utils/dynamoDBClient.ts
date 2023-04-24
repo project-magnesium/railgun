@@ -1,4 +1,5 @@
 import { DynamoDBClientConfig, DynamoDB } from '@aws-sdk/client-dynamodb';
+import { randomUUID } from 'crypto';
 const {
     EnvironmentParameter,
     DynamoDBRegionParameter,
@@ -36,5 +37,9 @@ export default class DynamoDBClient {
 
     static getTableName(tableName: string): string {
         return `${tableName}${EnvironmentParameter}`;
+    }
+
+    static generateId() {
+        return randomUUID();
     }
 }

@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import { initTRPC } from '@trpc/server';
 
-import { requestHandler } from '../utils/trpcRequestHandler';
+import { requestHandler } from '../../utils/trpcRequestHandler';
 const { FullApiDomainNameParameter, GoogleOauthClientIDParameter, GoogleOauthClientSecretParameter } = process.env;
 
 export const t = initTRPC.create();
@@ -13,7 +13,10 @@ export const appRouter = t.router({
             `${FullApiDomainNameParameter}/oauth2Callback`,
         );
 
-        const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
+        const scopes = [
+            'https://www.googleapis.com/auth/gmail.readonly',
+            'https://www.googleapis.com/auth/userinfo.email',
+        ];
         const authorizationUrl = oauth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: scopes,

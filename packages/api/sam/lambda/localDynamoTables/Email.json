@@ -1,0 +1,15 @@
+{
+    "TableName": "EmailDev",
+    "KeySchema": [
+        { "AttributeName": "userId", "KeyType": "HASH" },
+        { "AttributeName": "createdDate", "KeyType": "RANGE" }
+    ],
+    "AttributeDefinitions": [
+        { "AttributeName": "userId", "AttributeType": "S" },
+        { "AttributeName": "createdDate", "AttributeType": "S" }
+    ],
+    "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+    }
+}

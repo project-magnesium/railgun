@@ -1,13 +1,16 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { OAuth2Client } from 'google-auth-library';
-import RequestHandler from '../utils/requestHandler';
-import DynamoDBClient from '../utils/dynamoDBClient';
+import RequestHandler from '../../utils/requestHandler';
+import DynamoDBClient from '../../utils/dynamoDBClient';
+import GmailClient from '../../utils/gmailClient';
+import { encrypt } from '../../utils/crypto';
 
 const {
     FullDomainNameParameter,
     GoogleOauthClientIDParameter,
     GoogleOauthClientSecretParameter,
     FullApiDomainNameParameter,
+    GmailPubSubTopicParameter,
 } = process.env;
 
 const getHandler = async (event: APIGatewayProxyEvent) => {
@@ -28,20 +31,43 @@ const getHandler = async (event: APIGatewayProxyEvent) => {
         console.log('Error:' + q.error);
     } else if (q.code) {
         const { tokens } = await oauth2Client.getToken(q.code);
-        oauth2Client.setCredentials(tokens);
-
-        const dynamoDBClient = new DynamoDBClient();
-
         if (!tokens.access_token || !tokens.refresh_token) {
             throw Error('Missing access token or refresh token');
         }
+        oauth2Client.setCredentials(tokens);
+
+        const { email } = await oauth2Client.getTokenInfo(tokens.access_token);
+
+        if (!email) throw Error('No email retrieved from Google Oauth server');
+
+        const dynamoDBClient = new DynamoDBClient();
 
         await dynamoDBClient.client.putItem({
             TableName: DynamoDBClient.getTableName('GoogleUserTokens'),
             Item: {
-                userID: { S: userID },
-                accessToken: { S: tokens.access_token },
-                refreshToken: { S: tokens.refresh_token },
+                email: { S: email },
+                userId: { S: userID },
+                accessToken: { S: encrypt(tokens.access_token) },
+                refreshToken: { S: encrypt(tokens.refresh_token) },
+            },
+        });
+
+        const gmailClient = new GmailClient(tokens.refresh_token);
+        const { data: watchData } = await gmailClient.client.users.watch({
+            userId: 'me',
+            requestBody: {
+                topicName: GmailPubSubTopicParameter,
+                labelIds: ['INBOX'],
+            },
+        });
+
+        await dynamoDBClient.client.putItem({
+            TableName: DynamoDBClient.getTableName('GmailHistoryId'),
+            Item: {
+                userId: { S: userID },
+                historyId: { S: watchData.historyId ?? '' },
+                createdDate: { S: new Date().toISOString() },
+                modifiedDate: { S: new Date().toISOString() },
             },
         });
     } else {

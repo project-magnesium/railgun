@@ -6,7 +6,7 @@ const webpack = require('webpack');
 const config = {
     mode: 'development',
     devtool: false,
-    entry: glob.sync('./handler/**.ts').reduce(function (obj, el) {
+    entry: glob.sync('./handler/**/**.ts').reduce(function (obj, el) {
         obj[path.parse(el).name] = el;
         return obj;
     }, {}),

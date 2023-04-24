@@ -1,7 +1,7 @@
 {
     "TableName": "GoogleUserTokensDev",
-    "KeySchema": [{ "AttributeName": "userID", "KeyType": "HASH" }],
-    "AttributeDefinitions": [{ "AttributeName": "userID", "AttributeType": "S" }],
+    "KeySchema": [{ "AttributeName": "email", "KeyType": "HASH" }],
+    "AttributeDefinitions": [{ "AttributeName": "email", "AttributeType": "S" }],
     "ProvisionedThroughput": {
         "ReadCapacityUnits": 5,
         "WriteCapacityUnits": 5

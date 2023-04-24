@@ -1,11 +1,18 @@
 {
+    "extends": "tsconfig/base.json",
     "compilerOptions": {
-        "module": "CommonJS",
-        "target": "ES2017",
+        "module": "ESNext",
+        "target": "ESNext",
         "noImplicitAny": true,
         "preserveConstEnums": true,
+        "sourceMap": true,
         "outDir": "./built",
-        "sourceMap": true
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "allowJs": false,
+        "esModuleInterop": false,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true
     },
     "watchOptions": {
         // Use native file system events for files and directories

@@ -39,7 +39,7 @@ _The steps below assume that you have Google Oauth apps created for Web, Android
 
 5. Replace `reponame` in `packages/api/sam/lambda/aws-toolkit-tsconfig.json` with your repository name.
 
-6. Add appropriate host permissions in `apps/extension/public/manifest.json` to ensure cookie authentication works as expected. e.g. `"host_permissions": ["https://api.<your-domain-name>.com/", "http://localhost:3001/"]`
+6. Add appropriate host permissions in `apps/extension/public/manifest.json` to ensure cookie authentication works as expected. e.g. `"host_permissions": ["https://api.<your-domain-name>.com/", "https://api.stagin.<your-domain-name>.com/", "http://localhost:3001/"]`
 
 7. If you would like to inject a user ID into your lambda functions when testing locally, follow these steps:
 

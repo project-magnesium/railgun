@@ -6,7 +6,7 @@ cp -n packages/api/env.json.example packages/api/env.json;
 cp -n apps/.env.example apps/.env;
 
 # Install all monorepo dependencies
-yarn install;
+yarn install --silent;
 
 # Check if dynamo-local is running. If not, start it.
 if [ ! "$(docker ps -a -q -f name=dynamo-local)" ]; then

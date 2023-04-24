@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, H1 } from 'ui';
-import { MESSAGE_TYPES } from '../background/backgroundTypes';
+import { Button } from 'ui';
 
 type LoginProps = {
     onLogin: () => void;
@@ -12,7 +11,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     const handleGetLoginState = async () => {
         try {
-            const response = await chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_LOGIN_STATE });
+            const response = await chrome.runtime.sendMessage({ type: 'GET_LOGIN_STATE' });
             if (response.data.isLoggedIn) {
                 onLogin();
             }
@@ -27,7 +26,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     const handleLogin = async () => {
         setIsLoggingIn(true);
-        const response = await chrome.runtime.sendMessage({ type: MESSAGE_TYPES.LOGIN });
+        const response = await chrome.runtime.sendMessage({ type: 'LOGIN' });
         if (response.message === 'ok') {
             onLogin();
         } else {

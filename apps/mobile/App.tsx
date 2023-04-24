@@ -114,10 +114,10 @@ const StackNavigator = () => {
             }}
         >
             {isLoggedIn ? (
-                <Stack.Screen name="welcome">
+                <Stack.Screen name="home">
                     {() => (
                         <Provider>
-                            <Text>Welcome</Text>
+                            <Text>Home</Text>
                         </Provider>
                     )}
                 </Stack.Screen>

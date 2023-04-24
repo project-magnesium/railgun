@@ -1,21 +1,23 @@
-import {
-    PolicyDocument,
-    AuthResponse,
-    Statement,
-    APIGatewayRequestAuthorizerEvent,
-    Context,
-    Callback,
-} from 'aws-lambda';
+import { APIGatewayRequestAuthorizerEvent, Context, Callback } from 'aws-lambda';
 import { OAuth2Client } from 'google-auth-library';
+import { getCookie } from '../utils/cookie';
+import generatePolicy from '../utils/generatePolicy';
 
 export const handler = async (event: APIGatewayRequestAuthorizerEvent, context: Context, callback: Callback) => {
     const { GoogleOauthClientIDParameter, GoogleOauthIOSClientIDParameter, GoogleOauthAndroidClientIDParameter } =
         process.env;
 
     try {
+        if (!event.headers?.cookie) throw new Error('No cookie found in request headers');
+        if (!GoogleOauthClientIDParameter || !GoogleOauthIOSClientIDParameter || !GoogleOauthAndroidClientIDParameter)
+            throw new Error('Production parameters are not set');
+
         const token = getCookie(event.headers.cookie, 'cred');
 
+        if (!token) throw new Error('No token found in cookie');
+
         const client = new OAuth2Client(GoogleOauthClientIDParameter);
+
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: [
@@ -24,46 +26,12 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, context: 
                 GoogleOauthAndroidClientIDParameter,
             ],
         });
-
         const payload = ticket.getPayload();
         const userID = payload?.sub;
 
-        callback(null, generatePolicy('user', 'Allow', event.methodArn, userID as string));
+        callback(null, generatePolicy('user', 'Allow', event.methodArn, { userID: userID as string }));
     } catch (e) {
         console.error(e);
-        callback('Error: Invalid token');
+        callback('Unauthorized');
     }
-};
-
-const escape = (name: string) => {
-    return name.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
-};
-
-const getCookie = (cookie: string, name: string) => {
-    const match = cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
-    return match ? match[1] : null;
-};
-
-// Help function to generate an IAM policy
-const generatePolicy = (principalId: string, effect: string, resource: string, userID: string) => {
-    if (!effect || !resource) return;
-
-    const policyDocument: PolicyDocument = {
-        Version: '2012-10-17',
-        Statement: [],
-    };
-
-    const statementOne: Statement = {
-        Action: 'execute-api:Invoke',
-        Effect: effect,
-        Resource: resource,
-    };
-    policyDocument.Statement[0] = statementOne;
-
-    const authResponse: AuthResponse = {
-        principalId,
-        policyDocument,
-        context: { userID },
-    };
-    return authResponse;
 };

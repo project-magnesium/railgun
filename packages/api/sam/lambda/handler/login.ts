@@ -5,7 +5,9 @@ import RequestHandler from '../utils/requestHandler';
 const { DomainNameParameter, FullDomainNameParameter, GoogleOauthClientIDParameter } = process.env;
 
 const postHandler = async (event: APIGatewayProxyEvent) => {
-    const token = event.body.split('&')[0].split('=')[1];
+    const token = event.body?.split('&')[0].split('=')[1];
+    if (!token) throw Error('No token provided');
+
     const client = new OAuth2Client(GoogleOauthClientIDParameter);
     await client.verifyIdToken({
         idToken: token,
@@ -16,7 +18,7 @@ const postHandler = async (event: APIGatewayProxyEvent) => {
         statusCode: 303,
         headers: {
             'Set-Cookie': `cred=${token}; Domain=${DomainNameParameter}; Secure; HttpOnly`,
-            Location: `${FullDomainNameParameter as string}/app`,
+            Location: `${FullDomainNameParameter as string}/app/loginredirect`,
         },
     };
 };

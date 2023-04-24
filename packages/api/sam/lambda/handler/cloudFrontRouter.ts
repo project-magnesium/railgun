@@ -3,7 +3,7 @@ import { CloudFrontRequestEvent, Context, CloudFrontRequestCallback } from 'aws-
 exports.handler = (event: CloudFrontRequestEvent, context: Context, callback: CloudFrontRequestCallback) => {
     const request = event.Records[0].cf.request;
     const olduri = request.uri;
-    const newuri = olduri.replace(/app\/?$/, 'app/index.html');
+    const newuri = olduri.replace(/app(?!\/assets\/).*/, 'app/index.html');
     request.uri = newuri;
 
     return callback(null, request);

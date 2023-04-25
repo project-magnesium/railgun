@@ -196,7 +196,7 @@ export const handler = requestHandler({ router: appRouter, createContext });
 
 ## Interacting with the API
 
-The `common` package in `packages/common` is the go to package to make calls to the backend. Create new objects here for your frontend apps to use. With this approach, if the method of getting data from the backend changes for a specific frontend function, you should only need to modify what is in the common package instead of making changes to all frontend apps.
+The `common` package in `packages/common` is the go to package to make calls to the backend. Create new interfaces here for your frontend apps to use. With this approach, if the method of getting data from the backend changes for a specific frontend function, you should only need to modify what is in the common package instead of making changes to all frontend apps.
 
 ## Clients
 

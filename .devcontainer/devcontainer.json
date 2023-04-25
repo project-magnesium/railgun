@@ -14,7 +14,7 @@
         }
     },
     "runArgs": ["-p", "3001:3001", "--env-file", ".devcontainer/devcontainer.env"],
-    "postCreateCommand": "bash start.sh; cd samdev; python3.8 -m venv .samvenv; .samvenv/bin/python3.8 -m pip install --upgrade pip; source .samvenv/bin/activate; cd aws-sam-cli; make init;",
+    "postCreateCommand": "bash start.sh;",
     "customizations": {
         "vscode": {
             "extensions": ["esbenp.prettier-vscode", "rangav.vscode-thunder-client", "GitHub.copilot"]

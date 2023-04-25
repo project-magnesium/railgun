@@ -8,11 +8,12 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, context: 
         process.env;
 
     try {
-        if (!event.headers?.cookie) throw new Error('No cookie found in request headers');
+        const cookieHeader = event.headers?.cookie || event.headers?.Cookie;
+        if (!cookieHeader) throw new Error('No cookie found in request headers');
         if (!GoogleOauthClientIDParameter || !GoogleOauthIOSClientIDParameter || !GoogleOauthAndroidClientIDParameter)
             throw new Error('Production parameters are not set');
 
-        const token = getCookie(event.headers.cookie, 'cred');
+        const token = getCookie(cookieHeader, 'cred');
 
         if (!token) throw new Error('No token found in cookie');
 

@@ -8,6 +8,9 @@ cp -n apps/.env.example apps/.env;
 # Install all monorepo dependencies
 yarn install --silent;
 
+# Install SAM CLI
+pip install aws-sam-cli;
+
 # Check if dynamo-local is running. If not, start it.
 if [ ! "$(docker ps -a -q -f name=dynamo-local)" ]; then
     if [ "$(docker ps -aq -f status=exited -f name=dynamo-local)" ]; then

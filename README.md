@@ -9,7 +9,7 @@
 -   AWS SAM Boilerplate
     -   API Gateway + Lambda + Lambda Authorizer
     -   Cloudfront + S3 + Lambda@Edge to host landing page and web app within a single S3 bucket
-    -   Offline processor using Eventbridge + SQS + Lambda
+    -   Email processor using OpenAI, Google Pub Sub, Eventbridge, SQS, Lambda
 -   Web, Mobile & Chrome Extension Boilerplate
 -   EAS to create custom Expo builds
 -   Shared UI and logic packages
@@ -18,16 +18,20 @@
     -   Build your Chrome extension right from Github Actions. It will updgrade the manifest version automatically
     -   Create EAS Internal and App Store distribution builds for Android/iOS
 -   Custom domain names for landing page, web app, and API
--   Google SSO
+-   Google Oauth
 -   DynamoDB, Gmail, OpenAI clients
 
 # Installation
 
-_The steps below assume that you have Google Oauth apps created for Web, Android, iOS as well an Expo account_
+## Prerequisites
+1. Create Google Oauth apps for the apps you plan on using (i.e. Web, Android, and iOS Oauth apps) [Setting up Google OAuth 2.0](https://support.google.com/cloud/answer/6158849?hl=en)
+2. If you plan on creating a mobile app:
+    - ensure you have an Expo account and Apple developer license.
+    - [Create your first EAS build](https://docs.expo.dev/build/setup/) (Adjust the env in `apps/mobile/eas.json` and `owner, name, slug` fields in `apps/mobile/app.config.js` to suit your needs)
+3. If you plan on creating a chrome extension, it may be useful to create a consistent extension ID. This is particularly useful when using any type of authentication since you need a consistent redirect URI for you app. [Setting up consistent extension ID](https://developer.chrome.com/docs/extensions/mv3/manifest/key/)
+4. If you plan on using the Gmail parsing feature, ensure you have Google Cloud Pub/Sub setup to send push notifications. Consult [Cloud Pub/Sub Setup](https://developers.google.com/gmail/api/guides/push)
 
-[Setting up Google OAuth 2.0](https://support.google.com/cloud/answer/6158849?hl=en)
-
-[Create your first EAS build](https://docs.expo.dev/build/setup/) (Adjust the env in `apps/mobile/eas.json` and `owner, name, slug` fields in `apps/mobile/app.config.js` to suit your needs)
+## Installation Instructions
 
 1. Install and configure [Docker](https://www.docker.com/get-started) for your operating system.
 
@@ -39,35 +43,23 @@ _The steps below assume that you have Google Oauth apps created for Web, Android
 
 5. Replace `reponame` in `packages/api/sam/lambda/aws-toolkit-tsconfig.json` with your repository name.
 
-6. Add appropriate host permissions in `apps/extension/public/manifest.json` to ensure cookie authentication works as expected. e.g. `"host_permissions": ["https://api.<your-domain-name>.com/", "https://api.stagin.<your-domain-name>.com/", "http://localhost:3001/"]`
+6. Add appropriate host permissions in `apps/extension/public/manifest.json` to ensure cookie authentication works as expected. e.g. `"host_permissions": ["https://api.<your-domain-name>.com/", "https://api.staging.<your-domain-name>.com/", "http://localhost:3001/"]`
 
-7. If you would like to inject a user ID into your lambda functions when testing locally, follow these steps:
+7. Press `Command + Shift + P` and type "Open folder in container" to open the repository in a dev container. The container will take a few minutes to startup.
 
-    a. Create `samdev` directory in the root
-
-    b. Pull a local version of the [SAM CLI](https://github.com/aws/aws-sam-cli) into `samdev`
-
-    c. Remove `.git` file in `aws-sam-cli` to not create a git submodule
-
-    d. In `aws-sam-cli/setup.py`, change line 42 to `cmd_name = "sam"` from `cmd_name = "samdev"`
-
-    e. In `aws-sam-cli/samcli/local/events/api_event.py`, add
+8. Add any sensitive or missing environment variables to `apps/.env` and `packages/api/env.json` for local development.
+    - To generate the `EncryptionKeyParameter` and `EncryptionInitializationVectorParameter`, you can use the following node code:
 
     ```
-     "authorizer": {
-         "userID": 1234
-     }
+    const crypto = require('crypto');
+    const EncryptionKeyParameter = crypto.randomBytes(32).toString('base64')
+    const EncryptionInitializationVectorParameter = crypto.randomBytes(16).toString('base64')
     ```
-
-    to the `to_dict` function in the `RequestContext` class. You can add any custom values you want to be passed to the lambda function. For more information, follow [this guide](https://medium.com/@TawheedM/aws-sam-cli-advanced-testing-running-locally-when-authorizer-is-enabled-9a328d275b7)
-
-8. Press `Command + Shift + P` and type "Open folder in container" to open the repository in a dev container. The container will take a few minutes to startup.
-
-9. Add any sensitive or missing environment variables to `apps/.env` and `packages/api/env.json` for local development.
+    - Helpers to encrypt and decrypt strings exist in `packages/api/utls/crypto.ts`
 
 IMPORTANT NOTE: When developing the React Native app on your own mobile device, you need to replace all `localhost` references in `apps/.env` with your host ip address. e.g. 192.168.X.X
 
-8. Follow these steps if you would like to use NoSQL Workbench to view your local dynamo db tables:
+9. Follow these steps if you would like to use NoSQL Workbench to view your local dynamo db tables:
 
     a. [Download](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/workbench.settingup.html) NoSQL Workbench.
 
@@ -220,10 +212,14 @@ When deploying the SAM app to Staging or Production, you will need to validate t
 
 1. Go to AWS Certificate Manager and click on the certificate created by the deployment
 2. Add the CNAME within the certificate to your DNS to verify. Once set wait for verification to complete
-3. Add a CNAME to direct `https://api.staging.<YOUR_DOMAIN>.com` to API Gateway. E.g. Name = `api.staging` & Value = `API Gateway URL`
+3. Add a CNAME to direct `https://api.staging.<YOUR_DOMAIN>.com` to API Gateway.
 4. Add a permanent redirect to cloudfront. Forward `<YOUR_DOMAIN>.com` to `https://www.<YOUR_DOMAIN>.com`
 
 # Deployment
 
 1. Add appropriate Github secrets for use in Github Workflows (`.github/workflows/`). You can add the secrets in the repository settings under "Secrets and variables".
 2. Manually run workflows to deploy or build your apps
+
+# Other
+## Notes on Styling
+This framework assumes that you may need a Chrome Extension with UI injected into web pages. The UI package, included in Railgun, uses a library called `react-native-media-query` to help with responsiveness cross platform as well as translate styling to inline styles on web for better css specificity. Inline styles come with a performance hit as apps scale. If you don't need an injected content script, you can opt out of the styling strategy chosen for your own and potentially use a component library like [Tamagui](https://tamagui.dev/).

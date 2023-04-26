@@ -1,4 +1,5 @@
 import { PolicyDocument, AuthResponse, Statement, APIGatewayAuthorizerResultContext } from 'aws-lambda';
+const { EnvironmentParameter } = process.env;
 
 // Help function to generate an IAM policy
 const generatePolicy = (
@@ -17,7 +18,7 @@ const generatePolicy = (
     const statementOne: Statement = {
         Action: 'execute-api:Invoke',
         Effect: effect,
-        Resource: resource,
+        Resource: EnvironmentParameter === 'Dev' ? [resource] : resource,
     };
     policyDocument.Statement[0] = statementOne;
 

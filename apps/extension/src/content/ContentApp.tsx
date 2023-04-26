@@ -4,6 +4,7 @@ import Login from './Login';
 
 const SCREENS = {
     LOGIN: 'LOGIN',
+    HOME: 'HOME'
 };
 
 const Content: React.FC = () => {
@@ -32,10 +33,15 @@ const Content: React.FC = () => {
         };
     }, []);
 
+    const handleLogin = () => {
+        setCurrentScreen(SCREENS.HOME);
+    }
+
     return (
         <div style={{ position: 'absolute', top: 0 }}>
             <Provider>
-                {currentScreen === SCREENS.LOGIN && <Login onLogin={() => console.log('Implement navigation logic once navigation is complete')} />}
+                {currentScreen === SCREENS.LOGIN && <Login onLogin={handleLogin} />}
+                {currentScreen === SCREENS.HOME && <div>Home</div>>}
             </Provider>
         </div>
     );

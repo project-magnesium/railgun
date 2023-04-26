@@ -41,7 +41,7 @@ const Content: React.FC = () => {
         <div style={{ position: 'absolute', top: 0 }}>
             <Provider>
                 {currentScreen === SCREENS.LOGIN && <Login onLogin={handleLogin} />}
-                {currentScreen === SCREENS.HOME && <div>Home</div>>}
+                {currentScreen === SCREENS.HOME && <div>Home</div>}
             </Provider>
         </div>
     );

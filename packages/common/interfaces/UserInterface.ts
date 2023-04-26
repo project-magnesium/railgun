@@ -1,6 +1,6 @@
 import BaseInterface from './BaseInterface';
-import type { GoogleAuthorizerRouter } from 'lambda/handler/googleAuthorizer';
-import type { GmailUnsubscribeRouter } from 'lambda/handler/gmailUnsubscribe';
+import type { GoogleAuthorizerRouter } from 'lambda/handler/gmail/googleAuthorizer';
+import type { GmailUnsubscribeRouter } from 'lambda/handler/gmail/gmailUnsubscribe';
 
 export class UserInterface extends BaseInterface<
     GoogleAuthorizerRouter & GmailUnsubscribeRouter

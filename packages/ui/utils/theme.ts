@@ -23,6 +23,7 @@ export const theme = {
                 ? 'Helvetica'
                 : 'Roboto',
         fontSize: 14,
+        fontColor: '#000000',
         fontWeightLight: 300,
         fontWeightRegular: 400,
         fontWeightMedium: 500,

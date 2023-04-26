@@ -13,6 +13,7 @@ export const Text: React.FC<Omit<TextProps, 'style'>> = (props) => {
             xs: {
                 fontFamily: theme.typography.fontFamily,
                 fontSize: theme.typography.fontSize,
+                color: theme.typography.fontColor,
                 ...props.extraStyle,
             },
         },

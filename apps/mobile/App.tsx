@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import CookieManager from '@react-native-cookies/cookies';
-import { SafeAreaView, Platform } from 'react-native';
+import { SafeAreaView, Platform, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
@@ -19,17 +19,18 @@ const androidClientId = VITE_GOOGLE_ANDROID_CLIENT_ID;
 const iosClientId = VITE_GOOGLE_IOS_CLIENT_ID;
 
 const setCookie = async (idToken: string) => {
+    const isLocal = VITE_DOMAIN_NAME.includes('localhost');
+
     try {
         const newCookie = {
             httpOnly: true,
-            domain: `.${VITE_DOMAIN_NAME}`,
-            secure: true,
+            domain: isLocal ? 'localhost' : `.${VITE_DOMAIN_NAME}`,
+            secure: !isLocal,
             name: 'cred',
             value: idToken,
-            url: VITE_API_BASE_URL,
         };
 
-        await CookieManager.set(`https://www.${VITE_DOMAIN_NAME}`, newCookie);
+        await CookieManager.set(VITE_API_BASE_URL, newCookie);
     } catch (e) {
         console.log(e);
     }
@@ -40,7 +41,11 @@ const handleSetCredentials = async (idToken: string | undefined, refreshToken: s
     if (refreshToken) await SecureStore.setItemAsync('refreshToken', refreshToken);
 };
 
-const Login = () => {
+type LoginProps = {
+    onLogin: () => void;
+};
+
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
         androidClientId,
         iosClientId,
@@ -49,6 +54,8 @@ const Login = () => {
 
     const handleLoginSuccess = async (idToken: string, refreshToken: string | undefined) => {
         await handleSetCredentials(idToken, refreshToken);
+
+        onLogin();
     };
 
     useEffect(() => {
@@ -58,15 +65,22 @@ const Login = () => {
     }, [request, response]);
 
     return (
-        <>
+        <View
+            style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+            }}
+        >
             <Button
                 isDisabled={!request}
                 onPress={() => {
                     promptAsync();
                 }}
                 title="Sign in with Google"
+                extraStyle={{ alignSelf: 'auto' }}
             />
-        </>
+        </View>
     );
 };
 
@@ -107,6 +121,10 @@ const StackNavigator = () => {
         handleCheckLoggedIn();
     }, []);
 
+    const handleLogin = () => {
+        setIsLoggedIn(true);
+    };
+
     return (
         <Stack.Navigator
             screenOptions={{
@@ -122,7 +140,13 @@ const StackNavigator = () => {
                     )}
                 </Stack.Screen>
             ) : (
-                <Stack.Screen name="login" component={Login} />
+                <Stack.Screen name="login">
+                    {() => (
+                        <Provider>
+                            <Login onLogin={handleLogin} />
+                        </Provider>
+                    )}
+                </Stack.Screen>
             )}
         </Stack.Navigator>
     );
